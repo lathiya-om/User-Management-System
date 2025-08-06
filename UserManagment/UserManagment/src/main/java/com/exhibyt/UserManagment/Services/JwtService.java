@@ -5,27 +5,29 @@ import com.exhibyt.UserManagment.Entity.User;
 import com.exhibyt.UserManagment.Repository.RefreshTokenRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Instant;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 public class JwtService {
 
+    private static final Logger log = LoggerFactory.getLogger(JwtService.class);
     private final RefreshTokenRepository refreshTokenRepo;
+
+    public JwtService(RefreshTokenRepository refreshTokenRepo) {
+        this.refreshTokenRepo = refreshTokenRepo;
+    }
 
     @Value("${jwt.secret}")
     private String secret;
@@ -68,6 +70,20 @@ public class JwtService {
         }
     }
 
+    public List<String> extractRoles(String token) {
+        Claims claims = extractAllClaims(token);
+        Object rolesObj = claims.get("roles");
+
+        if (rolesObj instanceof List<?>) {
+            return ((List<?>) rolesObj).stream()
+                    .filter(role -> role instanceof String)
+                    .map(Object::toString)
+                    .toList();
+        }
+
+        return List.of();
+    }
+
     public boolean isTokenValid(String token, UserDetails userDetails) {
         try {
             final String username = extractUsername(token);
@@ -97,8 +113,17 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userDetails) {
-        String token = generateToken(new HashMap<>(), userDetails);
-        log.info("Generated access token for user '{}'", userDetails.getUsername());
+        Map<String, Object> extraClaims = new HashMap<>();
+        List<String> roles = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
+        log.debug("Generating token with roles: {}", roles); // ✅ DEBUG LOG
+
+        extraClaims.put("roles", roles);
+
+        String token = generateToken(extraClaims, userDetails);
+        log.info("Generated access token with roles for user '{}'", userDetails.getUsername());
         return token;
     }
 

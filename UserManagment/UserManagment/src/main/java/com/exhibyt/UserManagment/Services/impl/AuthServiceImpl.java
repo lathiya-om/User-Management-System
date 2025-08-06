@@ -16,7 +16,8 @@ import com.exhibyt.UserManagment.Services.AuthService;
 import com.exhibyt.UserManagment.Services.JwtService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -25,11 +26,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.Set;
 
-@Slf4j
 @Service
-@RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
     private final UserRepository userRepo;
     private final RoleRepository roleRepo;
     private final RefreshTokenRepository refreshTokenRepo;
@@ -37,23 +37,33 @@ public class AuthServiceImpl implements AuthService {
     private final AuthenticationManager authManager;
     private final PasswordEncoder passwordEncoder;
 
+    public AuthServiceImpl(UserRepository userRepo, RoleRepository roleRepo, RefreshTokenRepository refreshTokenRepo, JwtService jwtService, AuthenticationManager authManager, PasswordEncoder passwordEncoder) {
+        this.userRepo = userRepo;
+        this.roleRepo = roleRepo;
+        this.refreshTokenRepo = refreshTokenRepo;
+        this.jwtService = jwtService;
+        this.authManager = authManager;
+        this.passwordEncoder = passwordEncoder;
+    }
+
     @Override
     public LoginResponse login(LoginRequest request) {
-        log.info("Attempting login for user: {}", request.getEmail());
+        log.info("Attempting login for user: {}", request.getUsername());
 
         authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
 
-        User user = userRepo.findByEmail(request.getEmail())
+        User user = userRepo.findByUsernameAndDeletedFalse(request.getUsername())
                 .orElseThrow(() -> {
-                    log.warn("Login failed: User not found with email {}", request.getEmail());
-                    return new UsernameNotFoundException("User not found with email: " + request.getEmail());
+                    log.warn("Login failed: User not found with username {}", request.getUsername());
+                    return new UsernameNotFoundException("User not found with username: " + request.getUsername());
                 });
 
-        log.info("Login successful for user: {}", request.getEmail());
+        log.info("Login successful for user: {}", request.getUsername());
         return generateTokensForUser(user);
     }
+
 
     @Override
     public void register(RegisterRequest request) {

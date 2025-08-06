@@ -1,8 +1,8 @@
 package com.exhibyt.UserManagment.Entity;
 
 import jakarta.persistence.*;
-import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.*;
@@ -10,10 +10,6 @@ import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class User implements UserDetails {
 
     @Id
@@ -40,19 +36,14 @@ public class User implements UserDetails {
     )
     private Set<Role> roles = new HashSet<>();
 
-    // Spring Security methods
-
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (roles == null) return Collections.emptyList();
-        return roles.stream()
-                .map(role -> (GrantedAuthority) () -> "ROLE_" + role.getName().name())
-                .collect(Collectors.toSet());
+    public String getPassword() {
+        return this.password;
     }
 
     @Override
     public String getUsername() {
-        return this.email; // using email as login
+        return this.username;
     }
 
     @Override
@@ -73,5 +64,82 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled && !deleted;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName().name())) // ROLE_SUPER_ADMIN
+                .collect(Collectors.toList());
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return enabled == user.enabled && deleted == user.deleted && Objects.equals(id, user.id) && Objects.equals(email, user.email) && Objects.equals(username, user.username) && Objects.equals(password, user.password) && Objects.equals(roles, user.roles);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, email, username, password, enabled, deleted, roles);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<Role> roles) {
+        this.roles = roles;
+    }
+
+    public User() {
+    }
+
+    public User(Long id, String email, String username, String password, boolean enabled, boolean deleted, Set<Role> roles) {
+        this.id = id;
+        this.email = email;
+        this.username = username;
+        this.password = password;
+        this.enabled = enabled;
+        this.deleted = deleted;
+        this.roles = roles;
     }
 }

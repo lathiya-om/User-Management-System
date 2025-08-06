@@ -1,9 +1,21 @@
 package com.exhibyt.UserManagment.Services;
 
-
 import com.exhibyt.UserManagment.Constant.RoleName;
+import com.exhibyt.UserManagment.Dto.RegisterRequest;
 
 public interface AdminService {
+
+    /**
+     * Creates a new ADMIN user.
+     * @param request The registration request containing username, email, and password.
+     */
+    void createAdmin(RegisterRequest request);
+
+    /**
+     * Promotes an existing user to ADMIN.
+     * @param username The username of the user to promote.
+     */
+    void promoteToAdmin(String username);
 
     /**
      * Performs a soft delete on a user account, marking it as deleted without removing the data.

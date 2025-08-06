@@ -2,10 +2,10 @@ package com.exhibyt.UserManagment.Dto;
 
 
 
-public class RegisterRequest {
+public class UserProfileDto {
     private String username;
     private String email;
-    private String password;
+    private boolean active;
 
     public String getUsername() {
         return username;
@@ -23,20 +23,20 @@ public class RegisterRequest {
         this.email = email;
     }
 
-    public String getPassword() {
-        return password;
+    public boolean isActive() {
+        return active;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
-    public RegisterRequest() {
+    public UserProfileDto() {
     }
 
-    public RegisterRequest(String username, String email, String password) {
+    public UserProfileDto(String username, String email, boolean active) {
         this.username = username;
         this.email = email;
-        this.password = password;
+        this.active = active;
     }
 }

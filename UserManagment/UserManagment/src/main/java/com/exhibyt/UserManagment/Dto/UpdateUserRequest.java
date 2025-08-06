@@ -1,18 +1,9 @@
 package com.exhibyt.UserManagment.Dto;
 
+public class UpdateUserRequest {
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-
-public class UpdateProfileRequest {
-
-    @NotBlank(message = "Username must not be blank")
     private String username;
-
-    @NotBlank(message = "Email must not be blank")
-    @Email(message = "Email must be valid")
     private String email;
-
     private String password;
 
     public String getUsername() {
@@ -39,10 +30,10 @@ public class UpdateProfileRequest {
         this.password = password;
     }
 
-    public UpdateProfileRequest() {
+    public UpdateUserRequest() {
     }
 
-    public UpdateProfileRequest(String username, String email, String password) {
+    public UpdateUserRequest(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;

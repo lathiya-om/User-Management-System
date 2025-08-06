@@ -6,26 +6,30 @@ import com.exhibyt.UserManagment.Dto.LoginResponse;
 import com.exhibyt.UserManagment.Dto.RegisterRequest;
 import com.exhibyt.UserManagment.Services.AuthService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
-@Slf4j
+
 public class AuthController {
 
+    private static final Logger log = LoggerFactory.getLogger(AuthController.class);
     private final AuthService authService;
+
+    public AuthController(AuthService authService) {
+        this.authService = authService;
+    }
 
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         log.debug(request.toString());
-        log.info("Login request received for username: {}", request.getEmail());
+        log.info("Login request received for username: {}", request.getUsername());
         LoginResponse response = authService.login(request);
-        log.info("Login successful for username: {}", request.getEmail());
+        log.info("Login successful for username: {}", request.getUsername());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
